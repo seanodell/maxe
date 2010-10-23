@@ -1,15 +1,15 @@
-$LOAD_PATH << "#{$MAXE_ROOT}/lib"
-
-
 require 'yaml'
-require 'diff/lcs'
 
-require "#{$MAXE_ROOT}/lib/script.rb"
+require "maxe/script.rb"
+require "maxe/diff.rb"
 
 $MAXE_PHASE_NAMES = ['upload', 'setup', 'install', 'config', 'restart']
-$MAXE_PHASES = [$0.match(/^(.+\/)?.+_(.+)\..+/)[2]]
 
-$MAXE_CONF = YAML::load(File::readlines("#{$MAXE_ROOT}/conf/maxe.yaml").join("\n"))
+$MAXE_PHASES = [$0.match(/^(.+\/)?.+_(.+)(\..+)?/)[2]]
+raise "could not determine phase" if ($MAXE_PHASES.length <= 0)
+
+
+$MAXE_CONF = YAML::load(File::readlines("/etc/maxe/maxe.yaml").join("\n"))
 
 
 $MAXE_SCRIPT = File::basename($0)
@@ -60,7 +60,7 @@ end
 
 
 tasks = Maxe::Tasks.new
-Dir["#{$MAXE_ROOT}/scripts/*"].each do | script_file |
+Dir["/etc/maxe/scripts/*"].each do | script_file |
   tasks.load_script(File::basename(script_file))
 end
 tasks.execute

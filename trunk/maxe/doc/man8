@@ -1,0 +1,63 @@
+." Set the title
+.TH Maxe Administration
+." Add a header for the name section
+.SH NAME
+Scripts for automated system setup, installation and configuration.
+.SH SYNOPSIS
+maxe_setup.rb [
+.I options
+]
+
+maxe_install.rb [
+.I options
+]
+
+maxe_config.rb [
+.I options
+]
+.SH DESCRIPTION
+.SS maxe_setup.rb
+Runs all script tasks with a phase property of "setup".
+
+Intended to set up the local machine with basic packages and configuration in
+preparation for application installation and configuration.
+
+.SS maxe_install.rb
+Runs all script tasks with a phase property of "install".
+
+Intended to install (building if necessary) all required application packages
+on the local system and to create default configuration files for them.
+
+.SS maxe_config.rb
+Runs all script tasks with a phase property of "config".
+
+Intended to apply all final configuration changes to the local system.
+
+.SH OPTIONS
+.B --list-tasks
+Lists all tasks that will be executed (in order).  No tasks will execute, and
+will not output any debug information.
+.PP
+.B --debug
+Executes all tasks, but applies no changes to the system.  Prints information
+useful to anyone developing scripts and tasks.
+.SH FILES
+.I /etc/maxe/maxe.yaml
+.RS
+maxe configuration file.
+.RE
+.I /etc/maxe/scripts/
+.RS
+Directory where all task scripts are stored.
+.SH EXAMPLE
+.nf
+maxe_setup.rb
+.nf
+maxe_install.rb
+.nf
+maxe_config.rb --list-tasks
+.nf
+maxe_config.rb --debug
+.nf
+maxe_config.rb
+.fi

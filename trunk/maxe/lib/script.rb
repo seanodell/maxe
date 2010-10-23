@@ -36,7 +36,7 @@ module Maxe
       return if ($MAXE_PHASES.index(phase) == nil)
       return if (machine != nil and machine.index($MAXE_MACHINE) == nil)
 
-      script = File::readlines("#{$MAXE_ROOT}/scripts/#{script_name}").collect do | line |
+      script = File::readlines("/etc/maxe/scripts/#{script_name}").collect do | line |
         line.chomp
       end
 
@@ -207,7 +207,7 @@ module Maxe
     end
 
     def print_diff(org_array, final_array)
-      diff = Diff::LCS.diff(org_array, final_array)
+      diff = Diff::LCS::diff(org_array, final_array)
       last_position = nil
       if (diff.length > 0)
         diff.each do | change_area |
@@ -322,13 +322,10 @@ module Maxe
             suffix = match[3]
 
             final = "#{prefix}"
-            p (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
             final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
             final = final + task.section.join("\n")
-            p (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
             final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
             final = final + suffix
-            p (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
             final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
 
             if ($MAXE_SHOW_DIFFS)

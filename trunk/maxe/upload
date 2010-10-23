@@ -1,0 +1,11 @@
+#!/bin/bash
+
+TARGET_HOST=$1
+
+if [ "$TARGET_HOST" = "" ]; then
+  echo "UPLOAD (maxe)"
+  echo "Usage: upload hostname"
+  exit 1
+fi
+
+rsync -ruv --delete -e ssh $PWD root@$TARGET_HOST:/usr/share
