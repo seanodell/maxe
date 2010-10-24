@@ -380,12 +380,12 @@ module Maxe
       task.section.each do | line |
         next if (line =~ /^\s*$/)
         
-        match = line.match(/^\s*(.+?)\s*#{prop_separator}.+$/)
+        match = line.match(/^\s*(.+?)[ \t]*#{prop_separator}.+$/)
         raise "property missing separator: '#{line}'" if (match == nil)
 
         property = match[1]
 
-        regexp = /(\A.*?)(^\s*(#{prop_comment})?\s*#{property}\s*#{prop_separator}.*?$\n?)(.*\Z)/m
+        regexp = /(\A.*?^)(\s*(#{prop_comment})?[ \t]*#{property}\s*#{prop_separator}.*?$\n?)(.*\Z)/m
         match = file_contents.match(regexp)
         if (match)
           final = "#{match[1]}"
