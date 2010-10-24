@@ -55,6 +55,10 @@ raise "machine name not know" if ($MAXE_MACHINE == nil)
 $MAXE_MACHINE_CONF = $MAXE_MACHINES_DATA[$MAXE_MACHINE]
 raise "no configuration for machine '#{$MAXE_MACHINE}'" if ($MAXE_MACHINE_CONF == nil)
 
+# determine machine needs
+$MAXE_MACHINE_NEEDS = $MAXE_MACHINE_CONF['needs']
+raise "no needs for machine '#{$MAXE_MACHINE}'" if ($MAXE_MACHINE_NEEDS == nil)
+
 # determine machine archetype
 $MAXE_MACHINE_ARCHETYPE = $MAXE_MACHINE_CONF['archetype']
 raise "no archetype for machine '#{$MAXE_MACHINE}'" if ($MAXE_MACHINE_ARCHETYPE == nil)
@@ -79,6 +83,8 @@ while(arg = ARGV.shift)
     $MAXE_LIST_TASKS = true
   when "--all-phases"
     $MAXE_PHASES = $MAXE_PHASE_NAMES
+  when "--all-provides"
+    $MAXE_ALL_PROVIDES = true
   when "--synopsis"
     $MAXE_SYNOPSIS = true
   when "--target-tasks"
