@@ -17,7 +17,7 @@ module Maxe
 
 
 
-  Task = Struct.new("Task", :script_name, :phase, :order, :command, :id, :provides, :depends, :desc, :header, :section)
+  Task = Struct.new("Task", :script_name, :phase, :order, :command, :id, :provides, :depends, :desc, :header, :body)
 
 
 
@@ -88,14 +88,14 @@ module Maxe
             raise "missing PROVIDES:" if(provides == nil || provides[0].empty?)
             provides = provides[0]
 
-            # build section lines
-            section = []
+            # collect body lines
+            body = []
 
             if (boundary)
               catch(:found) do
                 while (line = array.shift)
                   break if (line =~ /^\s*#{boundary}\s*$/)
-                  section << line
+                  body << line
                 end
 
                 raise "END: value '#{boundary}' not found" if (not line =~ /^\s*#{boundary}\s*$/)
@@ -106,17 +106,8 @@ module Maxe
             next if ($MAXE_ALL_PROVIDES != true and $MAXE_MACHINE_NEEDS.index(provides) == nil)
             next if (archetype != nil and archetype != $MAXE_MACHINE_ARCHETYPE)
 
-            section = section.collect do | line |
-              next line.gsub(/\#\{\$MAXE_[_A-Z]+[^\{\}]*?\}/) do | substring |
-                substring = substring[2..-2]
-                begin
-                  next eval(substring)
-                rescue Exception => e
-                  e.message << " evaluating '#{substring}'"
-                  raise e
-                end
-              end
-            end
+            template = ERB.new(body.join("\n"), 0, "%<>")
+            body = template.result.split("\n")
 
             task = Task.new()
             task.script_name = script_name
@@ -128,7 +119,7 @@ module Maxe
             task.depends = depends
             task.desc = desc
             task.header = header
-            task.section = section
+            task.body = body
             @tasks << task
             
             order = order + 1
@@ -171,38 +162,50 @@ module Maxe
 
       tasks = []
 
-      # keep trying so long as there are tasks left to add to the final list
-      while (ordered_tasks.length > 0)
-        catch(:resolved_dependencies) do
-          ordered_tasks.each_index do | index |
-            task = ordered_tasks[index]
+      catch(:no_more_resolvable) do
+        # keep trying so long as there are tasks left to add to the final list
+        while (ordered_tasks.length > 0)
+          catch(:retry_dependencies) do
+            ordered_tasks.each_index do | index |
+              task = ordered_tasks[index]
 
-            # when a task has no more dependencies, it is ready to be added
-            if (task.depends == nil or task.depends.length <= 0)
-              tasks << task
-              ordered_tasks[index] = nil
+              # when a task has no more dependencies, it is ready to be added
+              if (task.depends == nil or task.depends.length <= 0)
+                tasks << task
+                ordered_tasks[index] = nil
 
-              reverse_depend = reverse_depend_map[task.id]
-              if (reverse_depend != nil) # if other tasks depended on this (reverse lookup)
-                reverse_depend.each do | depend_task |
-                  depend_task.depends.delete(task.id) # then delete those dependencies
+                reverse_depend = reverse_depend_map[task.id]
+                if (reverse_depend != nil) # if other tasks depended on this (reverse lookup)
+                  reverse_depend.each do | depend_task |
+                    depend_task.depends.delete(task.id) # then delete those dependencies
+                  end
+                  throw :retry_dependencies # also throw to the outer loop again
                 end
-                throw :resolved_dependencies # also throw to the outer loop again
               end
             end
-          end
-          # should only get here when the last run resolved no more dependencies.
-          # if any tasks remain, that means they still had dependencies.
-          # since no more dependencies can be resolved, these tasks are un-resolvable
-          
-          ordered_tasks.compact!
-          if (ordered_tasks.length > 0) # at least one task was left (must have dependencies)
-            raise "could not resolve dependencies (#{ordered_tasks[0].depend.join(', ')}) in #{ordered_tasks[0].id}"
-          end
-        end # end of catch
+            # should only get here when the last run resolved no more dependencies.
+            # if any tasks remain, that means they still had dependencies.
+            # since no more dependencies can be resolved, these tasks are un-resolvable
+            throw :no_more_resolvable
 
-        ordered_tasks.compact!
-      end # end of while loop
+          end # end of catch(:retry_dependencies)
+
+          ordered_tasks.compact!
+        end # end of while loop
+      end # end catch(:no_more_resolvable)
+
+      ordered_tasks.compact!
+      if (ordered_tasks.length > 0) # at least one task was left (must have dependencies)
+        unresolved = []
+
+        ordered_tasks.each do | task |
+          unresolved += task.depends
+        end
+
+        print "WARNING: could not resolve dependencies: #{unresolved.join(', ')}\n"
+
+        tasks += ordered_tasks
+      end
 
       @tasks = tasks
     end
@@ -284,7 +287,7 @@ module Maxe
 
     def execute_script_run(task)
       [1,2].each do | pass |
-        task.section.each do | line |
+        task.body.each do | line |
           line = "#{line}"
 
           line.strip!
@@ -331,8 +334,8 @@ module Maxe
       prop_areas.insert(0, Regexp.new(/(\A.*?)(#{start_line}\n.+?\n#{end_line}\n)(.*\Z)/m))
 
 
-      task.section.insert(0, start_line)
-      task.section << end_line
+      task.body.insert(0, start_line)
+      task.body << end_line
 
 
       catch(:found) do
@@ -350,7 +353,7 @@ module Maxe
 
             final = "#{prefix}"
             final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-            final = final + task.section.join("\n")
+            final = final + task.body.join("\n")
             final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
             final = final + suffix
             final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
@@ -402,7 +405,7 @@ module Maxe
 
       file_contents.gsub!("#{note_line}\n", "")
       
-      task.section.each do | line |
+      task.body.each do | line |
         next if (line =~ /^\s*$/)
         
         match = line.match(/^\s*(.+?)[ \t]*#{prop_separator}.+$/)

@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 
 require 'yaml'
+require 'erb'
 
 def read_properties(file_name)
   properties = {}
