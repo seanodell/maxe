@@ -4,7 +4,7 @@
 # This Diff module was created from parts of the diff-lcs.  I would like this
 # to either be re-written or for maxe to depend on a rubygems-distributed
 # implementation.
-# 
+#
 #
 # Original copyright notice:
 #

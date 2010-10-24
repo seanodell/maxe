@@ -29,14 +29,15 @@ module Maxe
 
 
     def load_script(script_name)
-      phase = script_name.match(/^.+_(.+)\..+/)[1]
-      machine = script_name.match(/^(.+?)_.+\..+/)[1]
+      match = script_name.match(/^(.+?)_(.+?)[\._].*$/)
+      machine = match[1]
       machine = nil if (machine == 'common')
+      phase = match[2]
 
       return if ($MAXE_PHASES.index(phase) == nil)
       return if (machine != nil and machine.index($MAXE_MACHINE) == nil)
 
-      script = File::readlines("/etc/maxe/scripts/#{script_name}").collect do | line |
+      script = File::readlines("#{$MAXE_SCRIPTS_DIR}/#{script_name}").collect do | line |
         line.chomp
       end
 
