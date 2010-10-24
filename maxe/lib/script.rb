@@ -17,7 +17,7 @@ module Maxe
 
 
 
-  Task = Struct.new("Task", :script_name, :phase, :order, :command, :id, :depend, :desc, :header, :section)
+  Task = Struct.new("Task", :script_name, :phase, :order, :command, :id, :provides, :depends, :desc, :header, :section)
 
 
 
@@ -72,12 +72,21 @@ module Maxe
               end
             end
 
-            raise "missing ID:" if (header['ID'] == nil)
-            id = header['ID'][-1]
+            id = header['ID']
+            raise "missing ID:" if (id == nil || id[0].empty?)
+            id = id[0]
 
-            archetypes = header['ARCHETYPE']
+            archetype = header['ARCHETYPE']
+            archetype = archetype != nil ? archetype[0] : nil
+
             desc = header['DESCRIPTION']
-            depend = header['DEPEND']
+            desc = desc != nil ? desc[0] : nil
+
+            depends = header['DEPEND']
+
+            provides = header['PROVIDES']
+            raise "missing PROVIDES:" if(provides == nil || provides[0].empty?)
+            provides = provides[0]
 
             # build section lines
             section = []
@@ -94,7 +103,8 @@ module Maxe
             end
 
             next if ($MAXE_TARGET_TASKS != nil and $MAXE_TARGET_TASKS.index(id) == nil)
-            next if (archetypes != nil and archetypes.index($MAXE_MACHINE_ARCHETYPE) == nil)
+            next if ($MAXE_ALL_PROVIDES != true and $MAXE_MACHINE_NEEDS.index(provides) == nil)
+            next if (archetype != nil and archetype != $MAXE_MACHINE_ARCHETYPE)
 
             section = section.collect do | line |
               next line.gsub(/\#\{\$MAXE_[_A-Z]+[^\{\}]*?\}/) do | substring |
@@ -108,7 +118,19 @@ module Maxe
               end
             end
 
-            @tasks << Task.new(script_name, phase, order, command, id, depend, desc, header, section)
+            task = Task.new()
+            task.script_name = script_name
+            task.phase = phase
+            task.order = order
+            task.command = command
+            task.id = id
+            task.provides = provides
+            task.depends = depends
+            task.desc = desc
+            task.header = header
+            task.section = section
+            @tasks << task
+            
             order = order + 1
           elsif (not line =~/^\s*$/)
             raise "'#{line}' unexpected"
@@ -123,7 +145,7 @@ module Maxe
 
 
     def sort_tasks
-      phase_order = ['upload', 'setup', 'install', 'config', 'restart']
+      phase_order = ['setup', 'install', 'config', 'restart']
 
       # first get a good starting order
       ordered_tasks = @tasks.sort do | l, r |
@@ -139,8 +161,8 @@ module Maxe
       # build a reverse depend map to help clear up dependencies as tasks are resolved
       reverse_depend_map = {}
       ordered_tasks.each do | task |
-        next if (task.depend == nil or task.depend.length <= 0)
-        task.depend.each do | depend |
+        next if (task.depends == nil or task.depends.length <= 0)
+        task.depends.each do | depend |
           reverse_depend = reverse_depend_map[depend]
           reverse_depend = reverse_depend_map[depend] = [] if (reverse_depend == nil)
           reverse_depend << task
@@ -156,14 +178,14 @@ module Maxe
             task = ordered_tasks[index]
 
             # when a task has no more dependencies, it is ready to be added
-            if (task.depend == nil or task.depend.length <= 0)
+            if (task.depends == nil or task.depends.length <= 0)
               tasks << task
               ordered_tasks[index] = nil
 
               reverse_depend = reverse_depend_map[task.id]
               if (reverse_depend != nil) # if other tasks depended on this (reverse lookup)
                 reverse_depend.each do | depend_task |
-                  depend_task.depend.delete(task.id) # then delete those dependencies
+                  depend_task.depends.delete(task.id) # then delete those dependencies
                 end
                 throw :resolved_dependencies # also throw to the outer loop again
               end
@@ -189,7 +211,8 @@ module Maxe
 
     def print_synopsis
 
-      col_width = @tasks.collect{|t|t.id}.max{|a,b|a.length<=>b.length}.length
+      id_width = @tasks.collect{|t|t.id}.max{|a,b|a.length<=>b.length}.length
+      prov_width = @tasks.collect{|t|t.provides}.max{|a,b|a.length<=>b.length}.length + 2
 
       last_phase = nil
       last_script_name = nil
@@ -201,9 +224,10 @@ module Maxe
         end
         if (last_script_name != task.script_name)
           last_script_name = task.script_name
-          print("  #{last_script_name}\n")
+          print("    #{last_script_name}\n")
         end
-        printf("    %-*s %6s - %s\n", col_width, task.id, "(#{task.command})", task.desc)
+        printf("        %-*s %5s: %-*s %s\n", id_width, task.id, "#{task.command}",
+          prov_width, "[#{task.provides}]", task.desc)
       end
     end
 
