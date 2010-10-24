@@ -4,16 +4,17 @@
 # convenient for testing during development, but passable as an installer
 # until something better can be written.
 
-ln -sf $PWD/bin/maxe_setup.rb /usr/local/sbin/maxe_setup
-ln -sf $PWD/bin/maxe_install.rb /usr/local/sbin/maxe_install
-ln -sf $PWD/bin/maxe_config.rb /usr/local/sbin/maxe_config
-ln -sf $PWD/bin/maxe_restart.rb /usr/local/sbin/maxe_restart
+# "phase" is implied by the script name (_phase)
+ln -sf $PWD/bin/maxe.rb /usr/local/sbin/maxe_setup
+ln -sf $PWD/bin/maxe.rb /usr/local/sbin/maxe_install
+ln -sf $PWD/bin/maxe.rb /usr/local/sbin/maxe_config
+ln -sf $PWD/bin/maxe.rb /usr/local/sbin/maxe_restart
 
 ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_install.8
 ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_setup.8
 ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_config.8
 ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_restart.8
 
-ln -sf $PWD/lib /usr/lib/ruby/1.8/maxe
-
-ln -sf $PWD/conf /etc/maxe
+echo "install_dir = $PWD" > /etc/maxe.conf
+echo "machines_data = $PWD/conf/machines.yaml" >> /etc/maxe.conf
+echo "scripts_dir = $PWD/conf/scripts" >> /etc/maxe.conf
