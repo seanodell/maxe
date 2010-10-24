@@ -212,7 +212,7 @@ module Maxe
       if (diff.length > 0)
         diff.each do | change_area |
           change_area.each do | change |
-            if (last_position != (change.position - 1))
+            if (last_position == nil || last_position < (change.position - 1))
               position = change.position - 1
               printf("= %3s %s\n", position + 1, final_array[position]) if (position >= 0 and position < final_array.length)
             end
@@ -245,6 +245,8 @@ module Maxe
         next if ($MAXE_LIST_TASKS)
 
         case task.command
+        when "PROPS"
+          execute_script_props(task)
         when "EDIT"
           execute_script_edit(task)
         when "RUN"
@@ -354,6 +356,75 @@ module Maxe
         end
 
         raise "no matching area found in file '#{prop_file}'"
+      end
+    end
+
+
+
+    def execute_script_props(task)
+      prop_file = task.header['FILE'][0]
+      prop_comment = task.header['COMMENT'][0]
+      prop_separator = task.header['SEPARATOR'][0]
+
+      raise "missing FILE:" if (prop_file == nil)
+      raise "missing SEPARATOR:" if (prop_separator == nil)
+
+      note_line = "#{prop_comment} GENERATED AUTOMATICALLY BY MAXE (#{task.id}); DO NOT EDIT!"
+
+      file_contents = []
+      file_contents = File::readlines(prop_file) if (File.exist?(prop_file))
+      file_contents = file_contents.join()
+
+      file_contents.gsub!("#{note_line}\n", "")
+      
+      task.section.each do | line |
+        next if (line =~ /^\s*$/)
+        
+        match = line.match(/^\s*(.+?)\s*#{prop_separator}.+$/)
+        raise "property missing separator: '#{line}'" if (match == nil)
+
+        property = match[1]
+
+        regexp = /(\A.*?)(^\s*(#{prop_comment})?\s*#{property}\s*#{prop_separator}.*?$\n?)(.*\Z)/m
+        match = file_contents.match(regexp)
+        if (match)
+          final = "#{match[1]}"
+          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
+          final = final + "#{note_line}\n"
+          final = final + line
+          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
+          final = final + match[4]
+          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
+          file_contents = final
+        else
+          final = file_contents
+          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
+          final = final + "#{note_line}\n"
+          final = final + line
+          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
+          file_contents = final
+        end
+      end
+
+      if ($MAXE_SHOW_DIFFS)
+        diff_org = []
+        diff_org = File::readlines(prop_file).join().split("\n") if (File::exist?(prop_file))
+        diff_final = file_contents.split("\n")
+
+        print "Diff: #{prop_file}\n"
+        print_diff(diff_org, diff_final)
+      end
+
+      if ($MAXE_PROMPT)
+        print "\nPress ENTER to continue..."
+        STDIN.gets
+        print "\n"
+      end
+
+      if (not $MAXE_DEBUG)
+        File::open(prop_file, File::RDWR | File::CREAT | File::TRUNC) do | file |
+          file.print(file_contents)
+        end
       end
     end
   end
