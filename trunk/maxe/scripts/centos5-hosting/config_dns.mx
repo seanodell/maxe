@@ -1,16 +1,3 @@
-RUN!
-ID:CREATE NAMED CONF
-DESCRIPTION:Copies the sample file to /etc/named.conf
-PROVIDES:dns
-BOUND:---
----
-cp /usr/share/doc/bind*/sample/etc/named.conf /etc/named.conf
-cp /usr/share/doc/bind*/sample/etc/named.root.hints /etc/named.root.hints
-cp /usr/share/doc/bind*/sample/etc/named.rfc1912.zones /etc/named.rfc1912.zones
----
-
-
-
 EDIT!
 ID:LISTEN-ON
 DESCRIPTION:Adds listen-on IP addresses to /etc/named.conf
@@ -24,6 +11,52 @@ BOUND:---
         listen-on {
                 <% $MAXE_MACHINE_CONF['var']['ips'].each{| ip | %><%= ip %>; <% } %>
         };
+---
+
+
+
+EDIT!
+ID:VIEW INTERNAL
+DESCRIPTION:Removes "internal" view from /etc/named.conf
+PROVIDES:dns
+FILE:/etc/named.conf
+AREA:(^.*)(view\s+"internal".+?\n\};)(.*$)
+COMMENT:#
+BOUND:---
+---
+---
+
+
+
+EDIT!
+ID:VIEW LOCALHOSTRESOLVER
+DESCRIPTION:Removes "localhost_resolver" view from /etc/named.conf
+PROVIDES:dns
+FILE:/etc/named.conf
+AREA:(^.*)(view\s+"localhost_resolver".+?\n\};)(.*$)
+COMMENT:#
+BOUND:---
+---
+---
+
+
+
+EDIT!
+ID:EDIT DDNS KEY
+DESCRIPTION:Adds secret ddns key to /etc/named.conf
+PROVIDES:dns
+FILE:/etc/named.conf
+AREA:(^.*)(key\s+ddns_key.+?\n\};)(.*$)
+COMMENT:#
+BOUND:---
+---
+<% system('/usr/sbin/dns-keygen > /etc/named.ddns_key') if (not File::exist?('/etc/named.ddns_key'))
+key = File::readlines('/etc/named.ddns_key')[0] %>
+key ddns_key
+{
+        algorithm hmac-md5;
+        secret "<%= key %>";
+};
 ---
 
 

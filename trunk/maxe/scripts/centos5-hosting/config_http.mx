@@ -18,6 +18,7 @@ DESCRIPTION:Adds the 'VHost' macro definition to /etc/httpd/conf/httpd.conf
 PROVIDES:http
 FILE:/etc/httpd/conf/httpd.conf
 AREA:(^.*)(<Macro\s+VHost.+?>.+?\/Macro.*>)(.*$)
+AREA:(\A.*)()(\z)
 COMMENT:#
 BOUND:---
 ---
@@ -82,6 +83,7 @@ PROVIDES:http
 DEPEND:MACRO VHOST
 FILE:/etc/httpd/conf/httpd.conf
 AREA:(^.*?)(Use\s+VHost.+Use\s+VHost\s+\S+\s+\S+\s+\S+)(.*\z)
+AREA:(\A.*)()(\z)
 COMMENT:#
 BOUND:---
 ---
