@@ -64,6 +64,10 @@ raise "no needs for machine '#{$MAXE_MACHINE}'" if ($MAXE_MACHINE_NEEDS == nil)
 $MAXE_MACHINE_ARCHETYPE = $MAXE_MACHINE_CONF['archetype']
 raise "no archetype for machine '#{$MAXE_MACHINE}'" if ($MAXE_MACHINE_ARCHETYPE == nil)
 
+# determine var space
+$MAXE_VAR = $MAXE_MACHINE_CONF['var']
+raise "no var for machine '#{$MAXE_MACHINE}'" if ($MAXE_VAR == nil)
+
 # default target machine is the current machine
 $MAXE_TARGET_MACHINE = $MAXE_MACHINE
 
