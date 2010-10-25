@@ -71,22 +71,18 @@ module Maxe
                 header[name] << value
               end
             end
-
             id = header['ID']
-            raise "missing ID:" if (id == nil || id[0].empty?)
+            raise "missing ID:" if (id == nil)
             id = id[0]
 
             archetype = header['ARCHETYPE']
-            archetype = archetype != nil ? archetype[0] : nil
-
+            archetype = archetype[0] if (archetype != nil)
             desc = header['DESCRIPTION']
-            desc = desc != nil ? desc[0] : nil
-
+            desc = desc[0] if (desc != nil)
             depends = header['DEPEND']
 
             provides = header['PROVIDES']
-            raise "missing PROVIDES:" if(provides == nil || provides[0].empty?)
-            provides = provides[0]
+            provides = provides[0] if(provides != nil)
 
             # collect body lines
             body = []
@@ -103,25 +99,47 @@ module Maxe
             end
 
             next if ($MAXE_TARGET_TASKS != nil and $MAXE_TARGET_TASKS.index(id) == nil)
-            next if ($MAXE_ALL_PROVIDES != true and $MAXE_MACHINE_NEEDS.index(provides) == nil)
+            next if ($MAXE_ALL_PROVIDES != true and provides!= nil and $MAXE_MACHINE_NEEDS.index(provides) == nil)
             next if (archetype != nil and archetype != $MAXE_MACHINE_ARCHETYPE)
 
-            template = ERB.new(body.join("\n"), 0, "%<>")
-            body = template.result.split("\n")
+            collection = header['COLLECTION']
+            collection = eval(collection[0]) if (collection != nil)
+            collection = [] if (collection == nil)
+            collection.compact!
+            collection << nil if (collection.length == 0)
 
-            task = Task.new()
-            task.script_name = script_name
-            task.phase = phase
-            task.order = order
-            task.command = command
-            task.id = id
-            task.provides = provides
-            task.depends = depends
-            task.desc = desc
-            task.header = header
-            task.body = body
-            @tasks << task
-            
+            initializes = header['INITIALIZE']
+            initializes = [initializes] if (initializes != nil and not initializes.kind_of?(Array))
+
+            collection.each do | item |
+              $MAXE_ITEM = item
+
+              $MAXE_TASK = Task.new()
+              $MAXE_TASK.script_name = script_name.clone
+              $MAXE_TASK.phase = phase.clone
+              $MAXE_TASK.order = "#{order}".to_i
+              $MAXE_TASK.command = command.clone
+              $MAXE_TASK.id = id.clone
+              $MAXE_TASK.provides = provides.clone if (provides != nil)
+              $MAXE_TASK.depends = depends.clone if (depends != nil)
+              $MAXE_TASK.desc = desc.clone if (desc != nil)
+              $MAXE_TASK.header = header.clone
+
+              initializes.each do | initialize |
+                eval(initialize)
+
+                $MAXE_TASK.header.keys.each do | name |
+                  value = $MAXE_TASK.header[name]
+                  $MAXE_TASK.header[name] = [value] if (not value.kind_of?(Array))
+                end
+              end if (initializes != nil)
+  
+              template = ERB.new(body.join("\n"), 0, "%<>")
+              $MAXE_TASK.body = template.result.split("\n")
+
+              @tasks << $MAXE_TASK
+            end
+
             order = order + 1
           elsif (not line =~/^\s*$/)
             raise "'#{line}' unexpected"
@@ -320,7 +338,7 @@ module Maxe
     def execute_script_edit(task)
       prop_file = task.header['FILE'][0]
       prop_areas = []
-     task. header['AREA'].each do | area |
+      task. header['AREA'].each do | area |
         prop_areas << Regexp.new(area, Regexp::MULTILINE)
       end
       prop_comment = task.header['COMMENT'][0]
