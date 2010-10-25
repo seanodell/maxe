@@ -17,4 +17,4 @@ ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_restart.8
 
 echo "install_dir = $PWD" > /etc/maxe.conf
 echo "machines_data = $PWD/conf/machines.yaml" >> /etc/maxe.conf
-echo "scripts_dir = $PWD/conf/scripts" >> /etc/maxe.conf
+echo "scripts_dir = $PWD/scripts/centos5-hosting" >> /etc/maxe.conf

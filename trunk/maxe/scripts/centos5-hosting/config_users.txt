@@ -1,0 +1,13 @@
+RUN!
+ID:USER ACCOUNTS
+DESCRIPTION:Creates user accounts
+BOUND:---
+---
+<% $MAXE_VAR['users'].each do | user | %>
+-useradd <%= user['name'] %>
+usermod --groups ftp --home /var/www --shell /sbin/nologin <%= user['name'] %>
+rm -rf /home/<%= user['name'] %>
+<% end %>
+
+@echo "REMEMBER TO SET THE PASSWORDS FOR ALL USER ACCOUNTS!"
+---

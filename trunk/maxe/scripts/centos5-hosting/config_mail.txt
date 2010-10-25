@@ -1,0 +1,90 @@
+EDIT!
+ID:LOCAL HOST NAMES
+DESCRIPTION: Creates all sendmail host names in /etc/mail/local-host-names for all customer accounts
+PROVIDES:mail
+FILE:/etc/mail/local-host-names
+AREA:()(\A.*\z)()
+COMMENT:#
+BOUND:---
+---
+<% $MAXE_VAR['accounts'].each do | account | %>
+<% needs = account['needs'] %>
+<% next if (needs == nil or needs.index('mail') == nil) %>
+<% name = account['name'] %>
+<% account['domains'].each do | domain | %>
+<%= domain %>
+
+<% end %>
+<% end %>
+---
+
+
+
+EDIT!
+ID:VIRTUAL USERS
+DESCRIPTION: Creates all sendmail virtual users in /etc/mail/virtusertable for all accounts
+PROVIDES:mail
+FILE:/etc/mail/virtusertable
+AREA:()(\A.*\z)()
+COMMENT:#
+BOUND:---
+---
+<% $MAXE_VAR['accounts'].each do | account | %>
+<% needs = account['needs'] %>
+<% next if (needs == nil or needs.index('mail') == nil) %>
+<% aliases = account['aliases'] %>
+<% aliases.each do | user, email | %>
+<% account['domains'].each do | domain | %>
+<%= user %>@<%= domain %> <%= user %>.<%= account['name'] %>
+
+<% end %>
+<% end %>
+
+<% end %>
+---
+
+
+
+EDIT!
+ID:ALIASES
+DESCRIPTION: Creates all sendmail aliases /etc/aliases for all users and accounts
+PROVIDES:mail
+FILE:/etc/aliases
+AREA:(\A.*)()(\z)
+COMMENT:#
+BOUND:---
+---
+# USERS
+
+<% $MAXE_VAR['users'].each do | user | %>
+<%= user['name'] %>: <%= user['email'] %>
+
+<% end %>
+
+# ACCOUNTS
+
+<% $MAXE_VAR['accounts'].each do | account | %>
+<% needs = account['needs'] %>
+<% next if (needs == nil or needs.index('mail') == nil) %>
+<% aliases = account['aliases'] %>
+<% aliases.each do | user, email | %>
+<%= user %>.<%= account['name'] %>: <%= email.join(',') %>
+
+<% end %>
+
+<% end %>
+---
+
+
+
+RUN!
+ID:SENDMAIL MAKE
+DESCRIPTION:Compiles all changes in /etc/mail
+PROVIDES:mail
+DEPEND:VIRTUAL USERS
+DEPEND:LOCAL HOST NAMES
+DEPEND:ALIASES
+BOUND:---
+---
+cd /etc/mail ; make
+---

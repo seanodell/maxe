@@ -1,0 +1,87 @@
+RUN!
+ID:NAMED RESTART
+DESCRIPTION:Restarts named
+PROVIDES:dns
+BOUND:---
+---
+/etc/init.d/named restart
+---
+
+
+
+RUN!
+ID:NTP RESTART
+DESCRIPTION:Restarts ntpd
+PROVIDES:ntp
+BOUND:---
+---
+-/etc/init.d/ntpd stop
+ntpdate 0.centos.pool.ntp.org
+/etc/init.d/ntpd restart
+---
+
+
+
+RUN!
+ID:MAIL RESTART
+DESCRIPTION:Restarts sendmail
+PROVIDES:mail
+BOUND:---
+---
+/etc/init.d/sendmail restart
+---
+
+
+
+RUN!
+ID:FTP RESTART
+DESCRIPTION:Restarts vsftpd
+PROVIDES:ftp
+BOUND:---
+---
+/etc/init.d/vsftpd restart
+---
+
+
+
+RUN!
+ID:MEMCACHE RESTART
+DESCRIPTION:Restarts memcached
+PROVIDES:memcache
+BOUND:---
+---
+/etc/init.d/memcached restart
+---
+
+
+
+RUN!
+ID:HTTP RESTART
+DESCRIPTION:Restarts httpd
+PROVIDES:http
+BOUND:---
+---
+/etc/init.d/httpd restart
+---
+
+
+
+RUN!
+ID:MYSQL RESTART
+DESCRIPTION:Restarts mysqld
+PROVIDES:mysql
+BOUND:---
+---
+/etc/init.d/mysqld restart
+---
+
+
+
+RUN!
+ID:FIREWALL RESTART
+DESCRIPTION:Restarts iptables
+PROVIDES:firewall
+BOUND:---
+---
+/etc/init.d/iptables restart
+---

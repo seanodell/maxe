@@ -1,0 +1,31 @@
+PROPS!
+ID:VSFTPD PROPS
+DESCRIPTION:Sets up vsftpd properties
+PROVIDES:ftp
+FILE:/etc/vsftpd/vsftpd.conf
+COMMENT:#
+SEPARATOR:=
+BOUND:---
+---
+local_umask=002
+anonymous_enable=NO
+chroot_list_enable=YES
+chroot_list_file=/etc/vsftpd/chroot_list
+---
+
+
+
+EDIT!
+ID:VSFTPD USERS
+DESCRIPTION:Puts all user account names into /etc/vsftpd/chroot_list
+PROVIDES:ftp
+FILE:/etc/vsftpd/chroot_list
+AREA:()(\A.*\z)()
+COMMENT:#
+BOUND:---
+---
+<% $MAXE_VAR['users'].each do | user | %>
+<%= user['name'] %>
+
+<% end %>
+---
