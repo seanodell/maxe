@@ -1,0 +1,104 @@
+RUN!
+ID:CREATE NAMED CONF
+DESCRIPTION:Copies the sample file to /etc/named.conf
+PROVIDES:dns
+BOUND:---
+---
+cp /usr/share/doc/bind*/sample/etc/named.conf /etc/named.conf
+cp /usr/share/doc/bind*/sample/etc/named.root.hints /etc/named.root.hints
+cp /usr/share/doc/bind*/sample/etc/named.rfc1912.zones /etc/named.rfc1912.zones
+---
+
+
+
+EDIT!
+ID:LISTEN-ON
+DESCRIPTION:Adds listen-on IP addresses to /etc/named.conf
+PROVIDES:dns
+FILE:/etc/named.conf
+AREA:(\A.*options\s*\{.*?)(\n\s*listen-on\s*\{[^\}]*\};)(.*\z)
+AREA:(\A.*options\s*\{.*?)()(\n\};.*\z)
+COMMENT://
+BOUND:---
+---
+        listen-on {
+                <% $MAXE_MACHINE_CONF['var']['ips'].each{| ip | %><%= ip %>; <% } %>
+        };
+---
+
+
+
+EDIT!
+ID:VIEW EXTERNAL
+DESCRIPTION:Adds zone file configurations to /etc/named.conf
+PROVIDES:dns
+FILE:/etc/named.conf
+AREA:(^.*)(view\s+"external".+?\n\};)(.*$)
+COMMENT:#
+BOUND:---
+---
+view    "external"
+{
+    match-clients           { any; };
+    match-destinations      { any; };
+
+    recursion no;
+
+    allow-query-cache { none; };
+
+    include "/etc/named.root.hints";
+
+<% $MAXE_MACHINE_CONF['var']['accounts'].each do | account | %>
+<% needs = account['needs'] %>
+<% next if (needs == nil or needs.index('dns') == nil) %>
+<% name = account['name'] %>
+<% account['domains'].each do | domain | %>
+    zone "<%= domain %>" {
+        type master;
+        file "<%= name %>.zone";
+    };
+<% end %>
+<% end %>
+};
+---
+
+
+
+EDIT!
+ID:DNS ZONE
+DESCRIPTION:Description will be replaced with the description below
+PROVIDES:dns
+FILE:/var/named/accounts.zone
+AREA:()(\A.*\z)()
+COLLECTION:$MAXE_VAR['accounts'].collect{|a| a['needs'].index('dns') != nil ? a : nil}
+INITIALIZE:$MAXE_TASK.header['FILE'] = "/var/named/#{$MAXE_ITEM['name']}.zone"
+INITIALIZE:$MAXE_TASK.desc = "Creates zone file '/var/named/#{$MAXE_ITEM['name']}.zone'"
+INITIALIZE:$MAXE_TASK.id = "#{$MAXE_TASK.id} (#{$MAXE_ITEM['name']})"
+SINITIALIZE:$MAXE_TASK.desc = "Creates zone file '/var/named/#{$MAXE_ITEM['name']}.zone'"
+COMMENT:;
+BOUND:---
+---
+<% name = $MAXE_ITEM['name'] %>
+$TTL    86400
+@               IN SOA  <%= $MAXE_VAR['nameservers'][0] %>.       root (
+                                        42              ; serial
+                                        3H              ; refresh
+                                        15M             ; retry
+                                        1W              ; expiry
+                                        1D )            ; minimum
+
+                IN NS           <%= $MAXE_VAR['nameservers'][0] %>.
+                IN NS           <%= $MAXE_VAR['nameservers'][1] %>.
+                IN A            <%= $MAXE_VAR['ips'][0] %>
+                IN MX   10      <%= $MAXE_VAR['mailserver'] %>.
+                IN AAAA         ::1
+
+www             IN A            <%= $MAXE_VAR['ips'][0] %>
+test            IN A            <%= $MAXE_VAR['ips'][0] %>
+
+<% $MAXE_ITEM['arecords'].keys.sort.each do | arn | %>
+<% aip = $MAXE_ITEM['arecords'][arn] %>
+<%= "%-16s" % arn %>IN A            <%= aip%>
+
+<% end if $MAXE_ITEM['arecords'] != nil %>
+---

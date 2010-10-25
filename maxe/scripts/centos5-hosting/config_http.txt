@@ -1,0 +1,102 @@
+RUN!
+ID:WEB ROOT
+DESCRIPTION:Prepares the root web folder
+PROVIDES:http
+DEPEND:WEB FOLDERS
+BOUND:---
+---
+#rm -rf /var/www/* # need to figure out a better way to clean this folder
+chown root.root /var/www
+chmod g=rx,o=rx /var/www
+---
+
+
+
+EDIT!
+ID:MACRO VHOST
+DESCRIPTION:Adds the 'VHost' macro definition to /etc/httpd/conf/httpd.conf
+PROVIDES:http
+FILE:/etc/httpd/conf/httpd.conf
+AREA:(^.*)(<Macro\s+VHost.+?>.+?\/Macro.*>)(.*$)
+COMMENT:#
+BOUND:---
+---
+<Macro VHost $account $class $host>
+    <VirtualHost *:80>
+        ServerAdmin null@atomicsystems.com
+        DocumentRoot /var/www/$account/$class
+        ServerName $host
+        ErrorLog logs/$account-error_log
+        CustomLog logs/$account-access_log common
+        <Directory /var/www/$account/$class>
+            AllowOverride all
+        </Directory>
+    </VirtualHost>
+</Macro>
+---
+
+
+
+PROPS!
+ID:HTTP PROPS
+DESCRIPTION:Updates property values in /etc/httpd/conf/httpd.conf
+PROVIDES:http
+FILE:/etc/httpd/conf/httpd.conf
+COMMENT:#
+SEPARATOR:[ \t]
+BOUND:---
+---
+DocumentRoot "/var/www"
+NameVirtualHost *:80
+---
+
+
+
+RUN!
+ID:WEB FOLDERS
+DESCRIPTION:Prepares the web account folders
+PROVIDES:http
+BOUND:---
+---
+<% $MAXE_VAR['accounts'].each do | account | %>
+<% needs = account['needs'] %>
+<% next if (needs == nil or needs.index('http') == nil) %>
+<% name = account['name'] %>
+mkdir -p /var/www/<%=name%>
+mkdir -p /var/www/<%=name%>/test
+mkdir -p /var/www/<%=name%>/live
+<% end %>
+
+chown root.ftp /var/www/*
+chown root.ftp /var/www/*/*
+chmod g=rx,o=rx /var/www/*
+chmod g=rwxs,o=rx  /var/www/*/*
+---
+
+
+
+EDIT!
+ID:USE VHOST
+DESCRIPTION:Applies 'Use VHost' macros for all customer accounts
+PROVIDES:http
+DEPEND:MACRO VHOST
+FILE:/etc/httpd/conf/httpd.conf
+AREA:(^.*?)(Use\s+VHost.+Use\s+VHost\s+\S+\s+\S+\s+\S+)(.*\z)
+COMMENT:#
+BOUND:---
+---
+<% $MAXE_VAR['accounts'].each do | account | %>
+<% needs = account['needs'] %>
+<% next if (needs == nil or needs.index('http') == nil) %>
+<% name = account['name'] %>
+Use VHost <%= name %> test test.<%= account['domains'][0] %>
+<% account['domains'].each do | domain | %>
+Use VHost <%= name %> live <%= domain %>
+Use VHost <%= name %> live www.<%= domain %>
+<% end %>
+
+<% end %>
+---
+
+
+

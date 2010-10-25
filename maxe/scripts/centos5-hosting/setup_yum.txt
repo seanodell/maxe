@@ -1,0 +1,29 @@
+RUN!
+ID:RPMFORGE
+DESCRIPTION:Installs the RPMFORGE package, adding RPMFORGE to the list of YUM repositories
+PROVIDES:yum
+BOUND:---
+---
+wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.1-1.el5.rf.i386.rpm
+-rpm -i rpmforge-release-0.5.1-1.el5.rf.i386.rpm
+---
+
+
+
+EDIT!
+ID:YUM TESTING
+DESCRIPTION:Adds CentOS-Testing to the list of YUM repositories, creating /etc/yum.repos.d/CentOS-Testing.repo
+PROVIDES:yum
+FILE:/etc/yum.repos.d/CentOS-Testing.repo
+AREA:()(\A.*\z)()
+COMMENT:#
+BOUND:---
+---
+[c5-testing]
+name=CentOS-5 Testing
+baseurl=http://dev.centos.org/centos/$releasever/testing/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=http://dev.centos.org/centos/RPM-GPG-KEY-CentOS-testing
+includepkgs=php*
+---

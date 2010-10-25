@@ -1,0 +1,28 @@
+EDIT!
+ID:BIND ETH0:0
+DESCRIPTION:Binds a second IP address to eth0:0
+PROVIDES:eth0:0
+FILE:/etc/sysconfig/network-scripts/ifcfg-eth0:0
+AREA:()(\A.*\z)()
+COMMENT:#
+BOUND:---
+---
+DEVICE=eth0:0
+BOOTPROTO=STATIC
+ONBOOT=yes
+IPADDR=<%= $MAXE_VAR['ips'][1] %>
+NETMASK=255.255.255.0
+---
+
+
+
+RUN!
+ID:DOWNUP ETH0:0
+DESCRIPTION:Takes eth0:0 down then back up
+PROVIDES:eth0:0
+DEPEND:BIND ETH0:0
+BOUND:---
+---
+ifdown eth0:0
+ifup eth0:0
+---

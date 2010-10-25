@@ -1,0 +1,131 @@
+RUN!
+ID:YUM UPDATE
+DESCRIPTION:Updates all existing packages via yum
+PROVIDES:yum
+BOUND:---
+---
+yum update
+---
+
+
+
+RUN!
+ID:YUM COMMON PACKAGES
+DESCRIPTION:Installs all common packages via yum
+PROVIDES:yum
+BOUND:---
+---
+yum install zlib zlib-devel libssh2 libssh2-devel
+---
+
+
+
+RUN!
+ID:YUM NTP
+DESCRIPTION:Installs ntpd
+PROVIDES:ntp
+BOUND:---
+---
+yum install ntp
+chkconfig ntpd on
+---
+
+
+
+RUN!
+ID:YUM MAIL
+DESCRIPTION:Installs sendmail
+PROVIDES:mail
+BOUND:---
+---
+yum install sendmail
+chkconfig sendmail on
+---
+
+
+
+RUN!
+ID:YUM FTP
+DESCRIPTION:Installs vsftpd
+PROVIDES:ftp
+BOUND:---
+---
+yum install vsftpd
+chkconfig vsftpd on
+---
+
+
+
+RUN!
+ID:YUM NAMED
+DESCRIPTION:Installs bind
+PROVIDES:dns
+BOUND:---
+---
+yum install bind
+chkconfig named on
+---
+
+
+
+RUN!
+ID:YUM MEMCACHE
+DESCRIPTION:Installs memcached
+PROVIDES:memcache
+BOUND:---
+---
+yum install memcached
+chkconfig memcached on
+---
+
+
+
+RUN!
+ID:YUM HTTP
+DESCRIPTION:Installs httpd
+PROVIDES:http
+BOUND:---
+---
+yum install httpd httpd-devel
+chkconfig httpd on
+---
+
+
+
+RUN!
+ID:YUM MYSQL
+DESCRIPTION:Installs mysqld
+PROVIDES:mysql
+BOUND:---
+---
+yum install mysqld
+chkconfig mysqld on
+---
+
+
+
+RUN!
+ID:YUM PHP
+DESCRIPTION:Installs php and extensions
+PROVIDES:php
+BOUND:---
+---
+yum install php php-pear php-devel php-mbstring php-gd
+---
+
+
+
+RUN!
+ID:PECL PACKAGES
+DESCRIPTION:Installs all common PECL (PHP) packages
+PROVIDES:php
+BOUND:---
+---
+-pecl install memcache
+@[ -f /usr/lib/php/modules/memcache.so ] || (echo "php memcache not installed"; exit 1)
+@echo "extension=memcache.so" > /etc/php.d/memcache.ini
+
+-pecl install ssh2-0.11.0
+@[ -f /usr/lib/php/modules/ssh2.so ] || (echo "php ssh2 not installed"; exit 1)
+@echo "extension=ssh2.so" > /etc/php.d/ssh2.ini
+---

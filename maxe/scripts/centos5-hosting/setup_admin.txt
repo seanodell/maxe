@@ -1,0 +1,25 @@
+RUN!
+ID:ADMIN USER
+DESCRIPTION:Creates the admin user, adding to the wheel group
+PROVIDES:admin
+BOUND:---
+---
+-useradd admin
+passwd admin
+usermod --groups wheel admin
+---
+
+
+
+EDIT!
+ID:SUDOER WHEEL
+DESCRIPTION:Adds wheel to /etc/sudoers
+PROVIDES:admin
+FILE:/etc/sudoers
+AREA:(\A.*\n)(%wheel.*?\n)(.*\Z)
+AREA:(\A.*)()(\Z)
+COMMENT:#
+BOUND:---
+---
+%wheel  ALL=(ALL)       ALL
+---

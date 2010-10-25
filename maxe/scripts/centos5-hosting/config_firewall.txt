@@ -1,0 +1,101 @@
+EDIT!
+ID:IPTABLES
+DESCRIPTION:Sets firewall rules in /etc/sysconfig/iptables
+PROVIDES:firewall
+FILE:/etc/sysconfig/iptables
+AREA:()(\A.*\z)()
+COMMENT:#
+BOUND:---
+---
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:RH-Firewall-1-INPUT - [0:0]
+-A INPUT -j RH-Firewall-1-INPUT
+-A FORWARD -j RH-Firewall-1-INPUT
+-A RH-Firewall-1-INPUT -i lo -j ACCEPT
+-A RH-Firewall-1-INPUT -p icmp --icmp-type any -j ACCEPT
+-A RH-Firewall-1-INPUT -p 50 -j ACCEPT
+-A RH-Firewall-1-INPUT -p 51 -j ACCEPT
+-A RH-Firewall-1-INPUT -p udp --dport 5353 -d 224.0.0.251 -j ACCEPT
+-A RH-Firewall-1-INPUT -p udp -m udp --dport 631 -j ACCEPT
+-A RH-Firewall-1-INPUT -p tcp -m tcp --dport 631 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 21 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT
+<% if ($MAXE_MACHINE_CONF['needs'].index('mail') != nil) %>
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 25 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 26 -j ACCEPT
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('dns') != nil) %>
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 53 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state NEW -m udp -p udp --dport 53 -j ACCEPT
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('http') != nil) %>
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 443 -j ACCEPT
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('samba') != nil) %>
+-A RH-Firewall-1-INPUT -m state --state NEW -m udp -p udp --dport 137 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state NEW -m udp -p udp --dport 138 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 139 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 445 -j ACCEPT
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('proxy') != nil) %>
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 3128 -j ACCEPT
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('mysql') != nil) %>
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 3306 -j ACCEPT
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('tomcat') != nil) %>
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT
+<% end %>
+-A RH-Firewall-1-INPUT -j REJECT --reject-with icmp-host-prohibited
+COMMIT
+---
+
+
+
+EDIT!
+ID:SYS SECURITYLEVEL
+DESCRIPTION:Writes firewall ports to /etc/sysconfig/system-config-securitylevel
+PROVIDES:firewall
+FILE:/etc/sysconfig/system-config-securitylevel
+AREA:()(\A.*\z)()
+COMMENT:#
+BOUND:---
+---
+# Configuration file for system-config-securitylevel
+
+--port=21:tcp
+--port=22:tcp
+<% if ($MAXE_MACHINE_CONF['needs'].index('mail') != nil) %>
+--port=25:tcp
+--port=26:tcp
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('dns') != nil) %>
+--port=53:tcp
+--port=53:udp
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('http') != nil) %>
+--port=80:tcp
+--port=443:tcp
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('samba') != nil) %>
+--port=137:udp
+--port=138:udp
+--port=139:tcp
+--port=445:tcp
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('proxy') != nil) %>
+--port=3128:tcp
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('mysql') != nil) %>
+--port=3306:tcp
+<% end %>
+<% if ($MAXE_MACHINE_CONF['needs'].index('tomcat') != nil) %>
+--port=8080:tcp
+<% end %>
+--enabled
+---
