@@ -1,4 +1,4 @@
-#summary Shows you how to install maxe on your local machine and how to deploy it remotely.
+#summary Installing maxe on your local machine and deploying it remotely.
 
 <wiki:toc max_depth="1" />
 
