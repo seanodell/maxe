@@ -5,6 +5,8 @@ PROVIDES:yum
 BOUND:---
 ---
 yum update
+
+@echo "You should reboot after a large update."
 ---
 
 
@@ -63,7 +65,22 @@ PROVIDES:dns
 BOUND:---
 ---
 yum install bind
+yum erase bind-chroot
 chkconfig named on
+---
+
+
+
+RUN!
+ID:CREATE NAMED CONF
+DESCRIPTION:Copies the sample file to /etc/named.conf
+PROVIDES:dns
+BOUND:---
+---
+[ -f /etc/named.conf ] || cp /usr/share/doc/bind*/sample/etc/named.conf /etc/named.conf
+cp /usr/share/doc/bind*/sample/etc/named.root.hints /etc/named.root.hints
+cp /usr/share/doc/bind*/sample/etc/named.rfc1912.zones /etc/named.rfc1912.zones
+cp /usr/share/doc/bind*/sample/var/named/named.root /var/named/named.root
 ---
 
 
@@ -93,12 +110,26 @@ chkconfig httpd on
 
 
 RUN!
+ID:HTTP MOD MACRO
+DESCRIPTION:Installs httpd
+PROVIDES:http
+BOUND:---
+---
+wget http://www.coelho.net/mod_macro/mod_macro-latest.tar.gz
+gunzip mod_macro-latest.tar.gz
+tar xf mod_macro-latest.tar
+/usr/sbin/apxs -cia mod_macro-1.1.11/mod_macro.c
+---
+
+
+
+RUN!
 ID:YUM MYSQL
 DESCRIPTION:Installs mysqld
 PROVIDES:mysql
 BOUND:---
 ---
-yum install mysqld
+yum install mysql-server
 chkconfig mysqld on
 ---
 
@@ -122,10 +153,10 @@ PROVIDES:php
 BOUND:---
 ---
 -pecl install memcache
-@[ -f /usr/lib/php/modules/memcache.so ] || (echo "php memcache not installed"; exit 1)
+@[ -f /usr/lib*/php/modules/memcache.so ] || (echo "php memcache not installed"; exit 1)
 @echo "extension=memcache.so" > /etc/php.d/memcache.ini
 
 -pecl install ssh2-0.11.0
-@[ -f /usr/lib/php/modules/ssh2.so ] || (echo "php ssh2 not installed"; exit 1)
+@[ -f /usr/lib*/php/modules/ssh2.so ] || (echo "php ssh2 not installed"; exit 1)
 @echo "extension=ssh2.so" > /etc/php.d/ssh2.ini
 ---
