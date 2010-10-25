@@ -230,7 +230,7 @@ module Maxe
     def print_synopsis
 
       id_width = @tasks.collect{|t|t.id}.max{|a,b|a.length<=>b.length}.length
-      prov_width = @tasks.collect{|t|t.provides}.max{|a,b|a.length<=>b.length}.length + 2
+      prov_width = @tasks.collect{|t|t.provides}.max{|a,b|(a ? a : "*").length<=>(b ? b : "*").length}.length + 2
 
       last_phase = nil
       last_script_name = nil
@@ -245,7 +245,7 @@ module Maxe
           print("    #{last_script_name}\n")
         end
         printf("        %-*s %5s: %-*s %s\n", id_width, task.id, "#{task.command}",
-          prov_width, "[#{task.provides}]", task.desc)
+          prov_width, "[#{task.provides ? task.provides : '*'}]", task.desc)
       end
     end
 
@@ -274,6 +274,15 @@ module Maxe
 
 
 
+    def prompt()
+      print "\nContinue? [y/N]: "
+      ans = STDIN.gets
+      print "\n"
+      return ans =~ /^[yY]/ ? true : false
+    end
+
+
+
     def execute
       sort_tasks
 
@@ -284,8 +293,6 @@ module Maxe
 
       @tasks.each do | task |
         print "Processing (#{task.phase}) #{task.command} '#{task.id}' in '#{task.script_name}'\n"
-
-        next if ($MAXE_LIST_TASKS)
 
         case task.command
         when "PROPS"
@@ -312,7 +319,7 @@ module Maxe
 
           directives = "#{line.slice!(/^[@-]+/)}"
 
-          print "[maxe]\# #{line}\n" if (pass == 1 and $MAXE_PROMPT)
+          print "[maxe]\# #{line}\n" if (pass == 1 and $MAXE_SHOW_WORK)
 
           if (pass == 2 and not $MAXE_DEBUG)
             print "[maxe]\# #{line}\n" if (directives.index('@') == nil)
@@ -323,11 +330,11 @@ module Maxe
         end
 
         if (pass == 1 and $MAXE_PROMPT)
-          print "\nPress ENTER to continue..."
-          STDIN.gets
-          print "\n"
+          return if (prompt() == false)
         end
       end
+
+      print "Success!\n\n"
     end
 
 
@@ -346,7 +353,7 @@ module Maxe
       start_line = "#{prop_comment} #{task.id} GENERATED AUTOMATICALLY BY MAXE; DO NOT EDIT!"
       end_line = "#{prop_comment} END OF #{task.id} GENERATED AUTOMATICALLY BY MAXE; DO NOT EDIT!"
 
-      prop_areas.insert(0, Regexp.new(/(\A.*?)(#{start_line}\n.+?\n#{end_line}\n)(.*\Z)/m))
+      prop_areas.insert(0, Regexp.new(/(\A.*?)(^#{start_line}$.+?^#{end_line}\n)(.*\Z)/m))
 
 
       task.body.insert(0, start_line)
@@ -373,7 +380,7 @@ module Maxe
             final = final + suffix
             final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
 
-            if ($MAXE_SHOW_DIFFS)
+            if ($MAXE_SHOW_WORK)
               diff_org = []
               diff_org = File::readlines(prop_file).join().split("\n") if (File::exist?(prop_file))
               diff_final = final.split("\n")
@@ -383,9 +390,7 @@ module Maxe
             end
 
             if ($MAXE_PROMPT)
-              print "\nPress ENTER to continue..."
-              STDIN.gets
-              print "\n"
+              return if (prompt() == false)
             end
 
             if (not $MAXE_DEBUG)
@@ -400,6 +405,8 @@ module Maxe
 
         raise "no matching area found in file '#{prop_file}'"
       end
+
+      print "Success!\n\n"
     end
 
 
@@ -449,7 +456,7 @@ module Maxe
         end
       end
 
-      if ($MAXE_SHOW_DIFFS)
+      if ($MAXE_SHOW_WORK)
         diff_org = []
         diff_org = File::readlines(prop_file).join().split("\n") if (File::exist?(prop_file))
         diff_final = file_contents.split("\n")
@@ -459,9 +466,7 @@ module Maxe
       end
 
       if ($MAXE_PROMPT)
-        print "\nPress ENTER to continue..."
-        STDIN.gets
-        print "\n"
+        return if (prompt() == false)
       end
 
       if (not $MAXE_DEBUG)
@@ -469,6 +474,10 @@ module Maxe
           file.print(file_contents)
         end
       end
+
+      print "Success!\n\n"
     end
+
   end
+
 end

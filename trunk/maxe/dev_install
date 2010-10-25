@@ -10,8 +10,8 @@ ln -sf $PWD/bin/maxe.rb /usr/local/sbin/maxe_install
 ln -sf $PWD/bin/maxe.rb /usr/local/sbin/maxe_config
 ln -sf $PWD/bin/maxe.rb /usr/local/sbin/maxe_restart
 
-ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_install.8
 ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_setup.8
+ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_install.8
 ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_config.8
 ln -sf $PWD/doc/man8 /usr/local/share/man/man8/maxe_restart.8
 

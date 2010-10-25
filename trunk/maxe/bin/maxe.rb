@@ -69,35 +69,33 @@ $MAXE_VAR = $MAXE_MACHINE_CONF['var']
 raise "no var for machine '#{$MAXE_MACHINE}'" if ($MAXE_VAR == nil)
 
 # default target machine is the current machine
-$MAXE_TARGET_MACHINE = $MAXE_MACHINE
+#$MAXE_TARGET_MACHINE = $MAXE_MACHINE
 
 
 
 # parse command-line arguments
 while(arg = ARGV.shift)
   case arg
+  when "--prompt"
+    $MAXE_PROMPT = true
+  when "--show-work"
+    $MAXE_SHOW_WORK = true
   when "--debug"
     $MAXE_DEBUG = true
     $MAXE_PROMPT = true
-    $MAXE_SHOW_DIFFS = true
-  when "--prompt"
-    $MAXE_PROMPT = true
-  when "--show-diffs"
-    $MAXE_SHOW_DIFFS = true
-  when "--list-tasks"
-    $MAXE_LIST_TASKS = true
-  when "--all-phases"
-    $MAXE_PHASES = $MAXE_PHASE_NAMES
-  when "--all-provides"
-    $MAXE_ALL_PROVIDES = true
+    $MAXE_SHOW_WORK = true
   when "--synopsis"
     $MAXE_SYNOPSIS = true
   when "--target-tasks"
     $MAXE_TARGET_TASKS = ARGV.shift.split(",")
-  when "--target-machine"
-    $MAXE_TARGET_MACHINE = ARGV.shift
-  when /^@/
-    $MAXE_TARGET_MACHINE = arg[1..-1]
+  when "--all-phases"
+    $MAXE_PHASES = $MAXE_PHASE_NAMES
+  when "--all-provides"
+    $MAXE_ALL_PROVIDES = true
+#  when "--target-machine"
+#    $MAXE_TARGET_MACHINE = ARGV.shift
+#  when /^@/
+#    $MAXE_TARGET_MACHINE = arg[1..-1]
   when "--help", "/?", "-?", "/help", "-help", "-h"
     system("man #{$MAXE_SCRIPT}")
     exit 0

@@ -4,60 +4,89 @@
 .SH NAME
 Scripts for automated system setup, installation and configuration.
 .SH SYNOPSIS
-maxe_setup.rb [
+maxe_setup [
 .I options
 ]
 
-maxe_install.rb [
+maxe_install [
 .I options
 ]
 
-maxe_config.rb [
+maxe_config [
+.I options
+]
+
+maxe_restart [
 .I options
 ]
 .SH DESCRIPTION
-.SS maxe_setup.rb
-Runs all script tasks with a phase property of "setup".
+.SS maxe_setup
+Runs all script tasks whose file name starts with "setup".
 
 Intended to set up the local machine with basic packages and configuration in
 preparation for application installation and configuration.
 
-.SS maxe_install.rb
-Runs all script tasks with a phase property of "install".
+.SS maxe_install
+Runs all script tasks whose file name starts with "install".
 
 Intended to install (building if necessary) all required application packages
 on the local system and to create default configuration files for them.
 
-.SS maxe_config.rb
-Runs all script tasks with a phase property of "config".
+.SS maxe_config
+Runs all script tasks whose file name starts with "config".
 
 Intended to apply all final configuration changes to the local system.
 
+
+.SS maxe_restart
+Runs all script tasks whose file name starts with "restart".
+
+Intended as a convenient way to restart services managed by maxe.
+
 .SH OPTIONS
-.B --list-tasks
-Lists all tasks that will be executed (in order).  No tasks will execute, and
-will not output any debug information.
+.B --prompt
+Prompts the user to continue before executing each task.
+.PP
+.B --show-work
+Shows the work that will be performed before executing each task.  For task types
+EDIT and PROP, file differences will be shown.  For task type RUN, the commands
+to be executed are shown.
 .PP
 .B --debug
-Executes all tasks, but applies no changes to the system.  Prints information
-useful to anyone developing scripts and tasks.
+Turns on --prompt and --show-work, but also prevents any changes from being
+applied to the system.  Useful for debugging while developing scripts.
+.PP
+.B --synopsis
+Displays an hierarchical overview of all tasks that will be executed (in order)
+without executing them.  Does not process tasks, so --prompt, --show-work and
+--debug will be ignored.  Can be combined with --all-phases and --all-provides.
+.PP
+.B --all-phases
+Overrides the current phase and processes tasks for all supported phases.  Useful
+when debugging or reviewing, or when you simply want to set a machine up from
+scratch as quickly as possible.  Can be combined with --prompt, --show-work,
+--debug and --all-provides.
+.PP
+.B --all-provides
+Ignores the needs of the machine and processes tasks regardless of what they
+provide.  Can be combined with --prompt, --show-work, --debug and --all-phases.
 .SH FILES
-.I /etc/maxe/maxe.yaml
+.I /etc/maxe.conf
 .RS
 maxe configuration file.
-.RE
-.I /etc/maxe/scripts/
-.RS
-Directory where all task scripts are stored.
 .SH EXAMPLE
 .nf
-maxe_setup.rb
+maxe_setup --synopsis
 .nf
-maxe_install.rb
+maxe_setup --prompt --show-work
 .nf
-maxe_config.rb --list-tasks
+maxe_install --synopsis
 .nf
-maxe_config.rb --debug
+maxe_install --prompt --show-work
 .nf
-maxe_config.rb
+maxe_config --synopsis
+.nf
+maxe_config --prompt --show-work
+.nf
+maxe_restart
 .fi
