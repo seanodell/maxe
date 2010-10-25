@@ -2,4 +2,4 @@
 
 = Documentation =
 
-  * [Command-Line Options]
+  * [CommandLineOptions Command-Line Options]
