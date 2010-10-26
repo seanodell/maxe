@@ -113,7 +113,7 @@ RUN!
 ID:HTTP MOD MACRO
 DESCRIPTION:Installs http mod_macro
 PROVIDES:http
-CONDITION: not File::exist?('/usr/lib/httpd/modules/mod_macro.so')
+CONDITION: not (File::exist?('/usr/lib/httpd/modules/mod_macro.so') or File::exist?('/usr/lib64/httpd/modules/mod_macro.so'))
 BOUND:---
 ---
 wget http://www.coelho.net/mod_macro/mod_macro-latest.tar.gz
@@ -150,16 +150,25 @@ yum install php php-pear php-devel php-mbstring php-gd
 
 
 RUN!
-ID:PECL PACKAGES
-DESCRIPTION:Installs all common PECL (PHP) packages
+ID:PECL MEMCACHE
+DESCRIPTION:Installs memcache pecl package
 PROVIDES:php
+CONDITION: not (File::exist?('/usr/lib/php/modules/memcache.so') or File::exist?('/usr/lib64/php/modules/memcache.so'))
 BOUND:---
 ---
 -pecl install memcache
-@[ -f /usr/lib*/php/modules/memcache.so ] || (echo "php memcache not installed"; exit 1)
 @echo "extension=memcache.so" > /etc/php.d/memcache.ini
+---
 
+
+
+RUN!
+ID:PECL SSH2
+DESCRIPTION:Installs ssh2 pecl package
+PROVIDES:php
+CONDITION: not (File::exist?('/usr/lib/php/modules/ssh2.so') or File::exist?('/usr/lib64/php/modules/ssh2.so'))
+BOUND:---
+---
 -pecl install ssh2-0.11.0
-@[ -f /usr/lib*/php/modules/ssh2.so ] || (echo "php ssh2 not installed"; exit 1)
 @echo "extension=ssh2.so" > /etc/php.d/ssh2.ini
 ---
