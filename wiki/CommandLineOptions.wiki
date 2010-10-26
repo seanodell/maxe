@@ -42,36 +42,38 @@
 
 == Options ==
 
-`--prompt`
-  Prompts the user to continue before executing each task.
+`--no-prompt`
+  Turns off prompting to continue between tasks.  Useful for unattended execution.
 
-`--show-work`
-  Shows  the work that will be performed before executing each task.  For task types EDIT and PROP, file differences will be shown.  For task type RUN, the commands to be executed are shown.
+`-hide-work`
+  Disables showing the work that will be performed before executing each task.  Normally, for task types EDIT and PROP, file differences are shown.  For task type RUN, the commands to be executed are shown.
 
 `--debug`
-  Turns on --prompt and --show-work, but also prevents any changes from being applied to the system.   Useful  for debugging while developing scripts.
+  Prevents any changes from being applied to the system.   Useful  for debugging while developing scripts.
 
 `--synopsis`
-  Displays an hierarchical overview of all tasks that will be executed (in order) without executing them.  Does not process tasks, so --prompt, --show-work and --debug will be ignored.  Can be combined with --all-phases  and  --all-provides.
+  Displays an hierarchical overview of all tasks that will be executed (in order) without executing them.  Does not process tasks, so --prompt, --hide-work and --debug will be ignored.  Can be combined with --all-phases  and  --all-provides.
 
 `--all-phases`
-  Overrides the current phase and processes tasks for all supported phases.  Useful when debugging or reviewing, or when you simply want to set a machine up from scratch as quickly as possible.  Can be  combined  with  --prompt, --show-work, --debug and --all-provides.
+  Overrides the current phase and processes tasks for all supported phases.  Useful when debugging or reviewing, or when you simply want to set a machine up from scratch as quickly as possible.  Can be  combined  with  --no-prompt, --hide-work, --debug and --all-provides.
 
 `--all-provides`
-  Ignores  the  needs of the machine and processes tasks regardless of what they provide.  Can be combined with --prompt, --show-work, --debug and --all-phases.
+  Ignores  the  needs of the machine and processes tasks regardless of what they provide.  Can be combined with --no-prompt, --hide-work, --debug and --all-phases.
 
 == Examples ==
 
   `maxe_setup --synopsis`
 
-  `maxe_setup --prompt --show-work`
+  `maxe_setup`
 
   `maxe_install --synopsis`
 
-  `maxe_install --prompt --show-work`
+  `maxe_install`
 
   `maxe_config --synopsis`
 
-  `maxe_config --prompt --show-work`
+  `maxe_config --debug`
+
+  `maxe_config`
 
   `maxe_restart`
