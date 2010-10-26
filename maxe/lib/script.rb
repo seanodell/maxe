@@ -130,7 +130,7 @@ module Maxe
                   $MAXE_TASK.header[name] = [value] if (not value.kind_of?(Array))
                 end
               end if (initializes != nil)
-  
+
               template = ERB.new(body.join("\n"), 0, "%<>")
               $MAXE_TASK.body = template.result.split("\n")
 
@@ -252,6 +252,7 @@ module Maxe
     def print_diff(org_array, final_array)
       diff = Diff::LCS::diff(org_array, final_array)
       last_position = nil
+      print "\n"
       if (diff.length > 0)
         diff.each do | change_area |
           change_area.each do | change |
@@ -268,17 +269,34 @@ module Maxe
           printf("= %3s %s\n", position + 1, final_array[position]) if (position >= 0 and position < final_array.length)
         end
       else
-        print "# NO CHANGE\n"
+        print "No changes in file detected\n"
       end
     end
 
 
 
     def prompt()
-      print "\nContinue? [y/N]: "
+      print $MAXE_DEBUG ? "\nIn debug mode; will not process task\n\nPress ENTER to continue..." : "\nProcess task? [y/N]: "
       ans = STDIN.gets
       print "\n"
-      return ans =~ /^[yY]/ ? true : false
+      return ($MAXE_DEBUG and ans =~ /^[yY]/) ? true : false
+    end
+
+    def test_conditions(task)
+      conditions = task.header['CONDITION']
+      return true if (conditions == nil)
+
+      conditions.each do | condition |
+        if (not eval(condition))
+          print "Condition '#{condition}' evaluated to false; will not process task\n"
+          if ($MAXE_PROMPT)
+            print "\nPress ENTER to continue..."
+            STDIN.gets
+            print "\n"
+          end
+          return false
+        end
+      end
     end
 
 
@@ -328,6 +346,8 @@ module Maxe
             raise "command failed (exit status #{status})" if (status != 0 and directives.index('-') == nil)
           end
         end
+
+        return if (pass == 1 and not test_conditions(task))
 
         if (pass == 1 and $MAXE_PROMPT)
           return if (prompt() == false)
@@ -388,6 +408,8 @@ module Maxe
               print "Diff: #{prop_file}\n"
               print_diff(diff_org, diff_final)
             end
+
+            return if (not test_conditions(task))
 
             if ($MAXE_PROMPT)
               return if (prompt() == false)
@@ -465,6 +487,8 @@ module Maxe
         print_diff(diff_org, diff_final)
       end
 
+      return if (not test_conditions(task))
+      
       if ($MAXE_PROMPT)
         return if (prompt() == false)
       end

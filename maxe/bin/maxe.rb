@@ -74,16 +74,17 @@ raise "no var for machine '#{$MAXE_MACHINE}'" if ($MAXE_VAR == nil)
 
 
 # parse command-line arguments
+$MAXE_PROMPT = true
+$MAXE_SHOW_WORK = true
+
 while(arg = ARGV.shift)
   case arg
-  when "--prompt"
-    $MAXE_PROMPT = true
-  when "--show-work"
-    $MAXE_SHOW_WORK = true
+  when "--no-prompt"
+    $MAXE_PROMPT = false
+  when "--no-show-work"
+    $MAXE_SHOW_WORK = false
   when "--debug"
     $MAXE_DEBUG = true
-    $MAXE_PROMPT = true
-    $MAXE_SHOW_WORK = true
   when "--synopsis"
     $MAXE_SYNOPSIS = true
   when "--target-tasks"
