@@ -111,8 +111,9 @@ chkconfig httpd on
 
 RUN!
 ID:HTTP MOD MACRO
-DESCRIPTION:Installs httpd
+DESCRIPTION:Installs http mod_macro
 PROVIDES:http
+CONDITION: not File::exist?('/usr/lib/httpd/modules/mod_macro.so')
 BOUND:---
 ---
 wget http://www.coelho.net/mod_macro/mod_macro-latest.tar.gz
@@ -131,6 +132,8 @@ BOUND:---
 ---
 yum install mysql-server
 chkconfig mysqld on
+
+@echo 'Be sure to set the MySQL root password!'
 ---
 
 
