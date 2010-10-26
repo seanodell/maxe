@@ -2,10 +2,11 @@ RUN!
 ID:RPMFORGE
 DESCRIPTION:Installs the RPMFORGE package, adding RPMFORGE to the list of YUM repositories
 PROVIDES:yum
+CONDITION: not File::exist?('/etc/yum.repos.d/rpmforge.repo')
 BOUND:---
 ---
-wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.1-1.el5.rf.i386.rpm
--rpm -i rpmforge-release-0.5.1-1.el5.rf.i386.rpm
+cd /tmp ; wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.1-1.el5.rf.i386.rpm
+-rpm -i /tmp/rpmforge-release-0.5.1-1.el5.rf.i386.rpm
 ---
 
 
