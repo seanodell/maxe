@@ -279,7 +279,7 @@ module Maxe
       print $MAXE_DEBUG ? "\nIn debug mode; will not process task\n\nPress ENTER to continue..." : "\nProcess task? [y/N]: "
       ans = STDIN.gets
       print "\n"
-      return ($MAXE_DEBUG and ans =~ /^[yY]/) ? true : false
+      return ((not $MAXE_DEBUG) and ans =~ /^[yY]/) ? true : false
     end
 
     def test_conditions(task)
@@ -297,6 +297,8 @@ module Maxe
           return false
         end
       end
+
+      return true
     end
 
 
