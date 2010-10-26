@@ -459,8 +459,15 @@ module Maxe
 
         property = match[1]
 
-        regexp = /(\A.*?^)(\s*(#{prop_comment})?[ \t]*#{property}\s*#{prop_separator}.*?$\n?)(.*\Z)/m
+        # try first without the comment char
+        regexp = /(\A.*?^)(\s*()#{property}\s*#{prop_separator}.*?$\n?)(.*\Z)/m
         match = file_contents.match(regexp)
+
+        if (match == nil) # if no match, try with
+          regexp = /(\A.*?^)(\s*(#{prop_comment})?[ \t]*#{property}\s*#{prop_separator}.*?$\n?)(.*\Z)/m
+          match = file_contents.match(regexp)
+        end
+
         if (match)
           final = "#{match[1]}"
           final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
