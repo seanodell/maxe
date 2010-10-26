@@ -1,3 +1,25 @@
+PROPS!
+ID:SELINUX CONF
+DESCRIPTION:Disables SELinux in /etc/sysconfig/selinux
+FILE:/etc/sysconfig/selinux
+COMMENT:#
+SEPARATOR:=
+BOUND:---
+---
+SELINUX=disabled
+---
+
+
+RUN!
+ID:SELINUX
+DESCRIPTION:Forces changes in /etc/sysconfig/selinux to take immediate effect
+BOUND:---
+---
+setenforce 0
+---
+
+
+
 EDIT!
 ID:BIND ETH0:0
 DESCRIPTION:Binds a second IP address to eth0:0
