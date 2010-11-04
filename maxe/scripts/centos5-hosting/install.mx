@@ -17,7 +17,7 @@ DESCRIPTION:Installs all common packages via yum
 PROVIDES:yum
 BOUND:---
 ---
-yum install zlib zlib-devel libssh2 libssh2-devel
+yum install zlib zlib-devel libssh2 libssh2-devel ImageMagick
 ---
 
 
@@ -103,7 +103,7 @@ DESCRIPTION:Installs httpd
 PROVIDES:http
 BOUND:---
 ---
-yum install httpd httpd-devel
+yum install httpd httpd-devel ruby-devel eruby
 chkconfig httpd on
 ---
 
@@ -120,6 +120,49 @@ wget http://www.coelho.net/mod_macro/mod_macro-latest.tar.gz
 gunzip mod_macro-latest.tar.gz
 tar xf mod_macro-latest.tar
 /usr/sbin/apxs -cia mod_macro-1.1.11/mod_macro.c
+---
+
+
+
+RUN!
+ID:HTTP MOD RUBY
+DESCRIPTION:Installs http mod_ruby
+PROVIDES:http
+CONDITION: not (File::exist?('/usr/lib/httpd/modules/mod_ruby.so') or File::exist?('/usr/lib64/httpd/modules/mod_ruby.so'))
+BOUND:---
+---
+wget http://www.modruby.net/archive/mod_ruby-1.2.6.tar.gz
+gunzip mod_ruby-1.2.6.tar.gz
+tar xf mod_ruby-1.2.6.tar
+cd mod_ruby-1.2.6 ; ./configure.rb --enable-eruby --with-apr-includes=/usr/include/apr-1
+cd mod_ruby-1.2.6 ; make
+cd mod_ruby-1.2.6 ; make install
+---
+
+
+
+EDIT!
+ID:LOAD MOD RUBY
+DESCRIPTION:Adds LoadModule and other configuration for mod_ruby to /etc/httpd/conf.d/ruby.conf
+PROVIDES:http
+FILE:/etc/httpd/conf.d/ruby.conf
+INITIALIZE: $MOD_RUBY_FILE = "/usr/lib/httpd/modules/mod_ruby.so" if (File::exist?("/usr/lib/httpd/modules/mod_ruby.so"))
+INITIALIZE: $MOD_RUBY_FILE = "/usr/lib64/httpd/modules/mod_ruby.so" if (File::exist?("/usr/lib64/httpd/modules/mod_ruby.so"))
+AREA:()(\A.*\Z)()
+COMMENT:#
+BOUND:---
+---
+LoadModule ruby_module <%= $MOD_RUBY_FILE %>
+
+#RubyRequire apache/ruby-debug
+RubyRequire apache/eruby-debug
+
+<Files *.rhtml>
+  SetHandler ruby-object
+  RubyHandler Apache::ERubyDebug.instance
+</Files>
+
+DirectoryIndex index.rhtml
 ---
 
 
