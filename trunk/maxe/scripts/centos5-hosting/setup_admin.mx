@@ -16,7 +16,7 @@ ID:SUDOER WHEEL
 DESCRIPTION:Adds wheel to /etc/sudoers
 PROVIDES:admin
 FILE:/etc/sudoers
-AREA:(\A.*\n)(\#?[ \t]*%wheel.*?\n)(.*\Z)
+AREA:(\A.*\n)(\#?[ \t]*%wheel\s+ALL\s*=\s*\(ALL\)\s+ALL.*?\n)(.*\Z)
 AREA:(\A.*)()(\Z)
 COMMENT:#
 BOUND:---

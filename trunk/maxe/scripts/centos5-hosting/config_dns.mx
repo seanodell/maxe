@@ -21,6 +21,7 @@ DESCRIPTION:Removes "internal" view from /etc/named.conf
 PROVIDES:dns
 FILE:/etc/named.conf
 AREA:(^.*)(view\s+"internal".+?\n\};)(.*$)
+AREA:(^.*)()($)
 COMMENT:#
 BOUND:---
 ---
@@ -34,6 +35,7 @@ DESCRIPTION:Removes "localhost_resolver" view from /etc/named.conf
 PROVIDES:dns
 FILE:/etc/named.conf
 AREA:(^.*)(view\s+"localhost_resolver".+?\n\};)(.*$)
+AREA:(^.*)()($)
 COMMENT:#
 BOUND:---
 ---
@@ -51,7 +53,7 @@ COMMENT:#
 BOUND:---
 ---
 <% system('/usr/sbin/dns-keygen > /etc/named.ddns_key') if (not File::exist?('/etc/named.ddns_key'))
-key = File::readlines('/etc/named.ddns_key')[0] %>
+key = File::readlines('/etc/named.ddns_key')[0].chomp %>
 key ddns_key
 {
         algorithm hmac-md5;

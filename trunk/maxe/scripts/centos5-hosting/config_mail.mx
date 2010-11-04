@@ -78,12 +78,9 @@ BOUND:---
 
 
 RUN!
-ID:SENDMAIL MAKE
-DESCRIPTION:Compiles all changes in /etc/mail
+ID:MAIL MAKE
+DESCRIPTION:Runs make on /etc/mail
 PROVIDES:mail
-DEPEND:VIRTUAL USERS
-DEPEND:LOCAL HOST NAMES
-DEPEND:ALIASES
 BOUND:---
 ---
 cd /etc/mail ; make

@@ -1,17 +1,3 @@
-RUN!
-ID:WEB ROOT
-DESCRIPTION:Prepares the root web folder
-PROVIDES:http
-DEPEND:WEB FOLDERS
-BOUND:---
----
-#rm -rf /var/www/* # need to figure out a better way to clean this folder
-chown root.root /var/www
-chmod g=rx,o=rx /var/www
----
-
-
-
 EDIT!
 ID:MACRO VHOST
 DESCRIPTION:Adds the 'VHost' macro definition to /etc/httpd/conf/httpd.conf
@@ -25,11 +11,16 @@ BOUND:---
 <Macro VHost $account $class $host>
     <VirtualHost *:80>
         ServerAdmin null@atomicsystems.com
-        DocumentRoot /var/www/$account/$class
+        DocumentRoot /var/www/$account/$class/html
         ServerName $host
         ErrorLog logs/$account-error_log
         CustomLog logs/$account-access_log common
-        <Directory /var/www/$account/$class>
+        <Directory /var/www/$account/$class/html>
+            AllowOverride all
+        </Directory>
+
+        Alias /cache "/var/www/$account/$class/cache"
+        <Directory /var/www/$account/$class/cache>
             AllowOverride all
         </Directory>
     </VirtualHost>
@@ -65,13 +56,26 @@ BOUND:---
 <% name = account['name'] %>
 mkdir -p /var/www/<%=name%>
 mkdir -p /var/www/<%=name%>/test
+mkdir -p /var/www/<%=name%>/test/html
+mkdir -p /var/www/<%=name%>/test/data
+mkdir -p /var/www/<%=name%>/test/cache
 mkdir -p /var/www/<%=name%>/live
+mkdir -p /var/www/<%=name%>/live/html
+mkdir -p /var/www/<%=name%>/live/data
+mkdir -p /var/www/<%=name%>/live/cache
 <% end %>
 
 chown root.ftp /var/www/*
 chown root.ftp /var/www/*/*
+chown root.ftp /var/www/*/*/*
+chown root.apache /var/www/*/*/cache
+
 chmod g=rx,o=rx /var/www/*
-chmod g=rwxs,o=rx  /var/www/*/*
+chmod g=rx,o=rx /var/www/*/*
+chmod g=rwxs,o=rx  /var/www/*/*/*
+
+chown root.root /var/www
+chmod g=rx,o=rx /var/www
 ---
 
 

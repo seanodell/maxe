@@ -15,7 +15,7 @@ ID:SELINUX
 DESCRIPTION:Forces changes in /etc/sysconfig/selinux to take immediate effect
 BOUND:---
 ---
-setenforce 0
+-setenforce 0
 ---
 
 
