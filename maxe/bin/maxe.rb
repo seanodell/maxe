@@ -81,7 +81,7 @@ while(arg = ARGV.shift)
   case arg
   when "--no-prompt"
     $MAXE_PROMPT = false
-  when "--no-show-work"
+  when "--hide-work"
     $MAXE_SHOW_WORK = false
   when "--debug"
     $MAXE_DEBUG = true
