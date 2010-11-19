@@ -71,6 +71,7 @@ BOUND:---
 
 --port=21:tcp
 --port=22:tcp
+--port=31:tcp
 <% if ($MAXE_MACHINE_CONF['needs'].index('mail') != nil) %>
 --port=25:tcp
 --port=26:tcp
