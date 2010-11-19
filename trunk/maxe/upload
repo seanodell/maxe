@@ -8,4 +8,4 @@ if [ "$TARGET_HOST" = "" ]; then
   exit 1
 fi
 
-rsync -ruv --delete -e ssh $PWD root@$TARGET_HOST:/usr/share
+rsync -ruv --delete -e ssh $PWD admin@$TARGET_HOST:/home/admin
