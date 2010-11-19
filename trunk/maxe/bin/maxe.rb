@@ -37,6 +37,9 @@ $MAXE_MACHINES_DATA = YAML::load(File::readlines($MAXE_MACHINES_DATA).join())
 Dir["#{$MAXE_INSTALL_DIR}/lib/*.rb"].each do | lib_script |
   load(lib_script)
 end
+Dir["#{$MAXE_INSTALL_DIR}/lib/commands/*.rb"].each do | lib_script |
+  load(lib_script)
+end
 
 # set constant list of supported phases
 $MAXE_PHASE_NAMES = ['setup', 'install', 'config', 'restart']

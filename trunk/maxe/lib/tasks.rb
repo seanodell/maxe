@@ -1,32 +1,11 @@
 module Maxe
 
-  class ArrayShifter
-    attr_reader :line_no
-
-    def initialize(array)
-      @array = array
-      @line_no = 0
-    end
-
-    def shift
-      line = @array.shift
-      @line_no = @line_no + 1
-      return line
-    end
-  end
-
-
-
   Task = Struct.new("Task", :script_name, :phase, :order, :command, :id, :provides, :depends, :desc, :header, :body)
-
-
 
   class Tasks
     def initialize
       @tasks = []
     end
-
-
 
     def load_script(script_name)
       match = script_name.match(/^(.+?)[\._].*$/)
@@ -38,7 +17,7 @@ module Maxe
         line.chomp
       end
 
-      array = ArrayShifter.new(script)
+      array = script
 
       order = 0
 
@@ -143,7 +122,7 @@ module Maxe
           end
         end
       rescue Exception => e
-        e.message << " at line #{array.line_no} in '#{script_name}'"
+        e.message << " at line #{array.shift_count} in '#{script_name}'"
         raise e
       end
     end
@@ -228,7 +207,6 @@ module Maxe
 
 
     def print_synopsis
-
       id_width = @tasks.collect{|t|t.id}.max{|a,b|a.length<=>b.length}.length
       prov_width = @tasks.collect{|t|t.provides}.max{|a,b|(a ? a : "*").length<=>(b ? b : "*").length}.length + 2
 
@@ -314,201 +292,12 @@ module Maxe
       @tasks.each do | task |
         print "Processing (#{task.phase}) #{task.command} '#{task.id}' in '#{task.script_name}'\n"
 
-        case task.command
-        when "PROPS"
-          execute_script_props(task)
-        when "EDIT"
-          execute_script_edit(task)
-        when "RUN"
-          execute_script_run(task)
-        end
+        command = method("#{task.command.downcase}_command")
+
+        raise "no such command '#{command}'" if (command == nil)
+
+        command.call(task)
       end
-    end
-
-
-
-    def execute_script_run(task)
-      [1,2].each do | pass |
-        task.body.each do | line |
-          line = "#{line}"
-
-          line.strip!
-
-          next if (line =~ /^#/)
-          next if (line =~ /^\s*$/)
-
-          directives = "#{line.slice!(/^[@-]+/)}"
-
-          print "[maxe]\# #{line}\n" if (pass == 1 and $MAXE_SHOW_WORK)
-
-          if (pass == 2 and not $MAXE_DEBUG)
-            print "[maxe]\# #{line}\n" if (directives.index('@') == nil)
-            system(line)
-            status = $?.exitstatus
-            raise "command failed (exit status #{status})" if (status != 0 and directives.index('-') == nil)
-          end
-        end
-
-        return if (pass == 1 and not test_conditions(task))
-
-        if (pass == 1 and $MAXE_PROMPT)
-          return if (prompt() == false)
-        end
-      end
-
-      print "Success!\n\n"
-    end
-
-
-
-    def execute_script_edit(task)
-      prop_file = task.header['FILE'][0]
-      prop_areas = []
-      task. header['AREA'].each do | area |
-        prop_areas << Regexp.new(area, Regexp::MULTILINE)
-      end
-      prop_comment = task.header['COMMENT'][0]
-
-      raise "missing FILE:" if (prop_file == nil)
-      raise "no AREA: (minimum 1 required)" if (prop_areas.length <= 0)
-
-      start_line = "#{prop_comment} #{task.id} GENERATED AUTOMATICALLY BY MAXE; DO NOT EDIT!"
-      end_line = "#{prop_comment} END OF #{task.id} GENERATED AUTOMATICALLY BY MAXE; DO NOT EDIT!"
-
-      prop_areas.insert(0, Regexp.new(/(\A.*?)(^#{start_line}$.+?^#{end_line}\n)(.*\Z)/m))
-
-
-      task.body.insert(0, start_line)
-      task.body << end_line
-
-
-      catch(:found) do
-        file_contents = []
-        file_contents = File::readlines(prop_file) if (File.exist?(prop_file))
-        file_contents = file_contents.join()
-
-        prop_areas.each do | area |
-          match = file_contents.match(area).to_a
-
-          if (match.length == 4)
-            prefix = match[1]
-            area = match[2]
-            suffix = match[3]
-
-            final = "#{prefix}"
-            final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-            final = final + task.body.join("\n")
-            final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-            final = final + suffix
-            final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-
-            if ($MAXE_SHOW_WORK)
-              diff_org = []
-              diff_org = File::readlines(prop_file).join().split("\n") if (File::exist?(prop_file))
-              diff_final = final.split("\n")
-
-              print "Diff: #{prop_file}\n"
-              print_diff(diff_org, diff_final)
-            end
-
-            return if (not test_conditions(task))
-
-            if ($MAXE_PROMPT)
-              return if (prompt() == false)
-            end
-
-            if (not $MAXE_DEBUG)
-              File::open(prop_file, File::RDWR | File::CREAT | File::TRUNC) do | file |
-                file.print(final)
-              end
-            end
-
-            throw :found
-          end
-        end
-
-        raise "no matching area found in file '#{prop_file}'"
-      end
-
-      print "Success!\n\n"
-    end
-
-
-
-    def execute_script_props(task)
-      prop_file = task.header['FILE'][0]
-      prop_comment = task.header['COMMENT'][0]
-      prop_separator = task.header['SEPARATOR'][0]
-
-      raise "missing FILE:" if (prop_file == nil)
-      raise "missing SEPARATOR:" if (prop_separator == nil)
-
-      note_line = "#{prop_comment} GENERATED AUTOMATICALLY BY MAXE (#{task.id}); DO NOT EDIT!"
-
-      file_contents = []
-      file_contents = File::readlines(prop_file) if (File.exist?(prop_file))
-      file_contents = file_contents.join()
-
-      file_contents.gsub!("#{note_line}\n", "")
-      
-      task.body.each do | line |
-        next if (line =~ /^\s*$/)
-        
-        match = line.match(/^\s*(.+?)[ \t]*#{prop_separator}.+$/)
-        raise "property missing separator: '#{line}'" if (match == nil)
-
-        property = match[1]
-
-        # try first without the comment char
-        regexp = /(\A.*?^)(\s*()#{property}\s*#{prop_separator}.*?$\n?)(.*\Z)/m
-        match = file_contents.match(regexp)
-
-        if (match == nil) # if no match, try with
-          regexp = /(\A.*?^)(\s*(#{prop_comment})?[ \t]*#{property}\s*#{prop_separator}.*?$\n?)(.*\Z)/m
-          match = file_contents.match(regexp)
-        end
-
-        if (match)
-          final = "#{match[1]}"
-          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-          final = final + "#{note_line}\n"
-          final = final + line
-          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-          final = final + match[4]
-          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-          file_contents = final
-        else
-          final = file_contents
-          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-          final = final + "#{note_line}\n"
-          final = final + line
-          final = "#{final}\n" if (not final =~ /\A\s*\Z/ and not final =~ /\n\s*\Z/)
-          file_contents = final
-        end
-      end
-
-      if ($MAXE_SHOW_WORK)
-        diff_org = []
-        diff_org = File::readlines(prop_file).join().split("\n") if (File::exist?(prop_file))
-        diff_final = file_contents.split("\n")
-
-        print "Diff: #{prop_file}\n"
-        print_diff(diff_org, diff_final)
-      end
-
-      return if (not test_conditions(task))
-      
-      if ($MAXE_PROMPT)
-        return if (prompt() == false)
-      end
-
-      if (not $MAXE_DEBUG)
-        File::open(prop_file, File::RDWR | File::CREAT | File::TRUNC) do | file |
-          file.print(file_contents)
-        end
-      end
-
-      print "Success!\n\n"
     end
 
   end
