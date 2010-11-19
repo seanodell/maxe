@@ -85,3 +85,14 @@ BOUND:---
 ---
 /etc/init.d/iptables restart
 ---
+
+
+
+RUN!
+ID:SSHD RESTART
+DESCRIPTION:Restarts sshd
+PROVIDES:ssh
+BOUND:---
+---
+/etc/init.d/sshd restart
+---

@@ -1,0 +1,33 @@
+PROPS!
+ID:SSHD PROPS
+DESCRIPTION:Updates property values in /etc/ssh/sshd_config
+PROVIDES:ssh
+FILE:/etc/ssh/sshd_config
+COMMENT:#
+SEPARATOR:[ \t]
+BOUND:---
+---
+PermitRootLogin no
+Port 31
+Banner /etc/ssh/banner.txt
+---
+
+
+
+EDIT!
+ID:SSH MESSAGE
+DESCRIPTION:Creates the ssh message file /etc/ssh/banner.txt
+PROVIDES:ssh
+FILE:/etc/ssh/banner.txt
+AREA:()(\A.*\z)()
+COMMENT:#
+ANNOTATE: no
+BOUND:---
+---
+WARNING!
+
+All ssh login attempts are logged and monitored by our staff.
+
+All unauthorized login attempts will be investigated and
+reported to local authorities.
+---
