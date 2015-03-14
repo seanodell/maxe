@@ -1,0 +1,77 @@
+## Commands ##
+
+> `maxe_setup [ options ]`
+
+> `maxe_install [ options ]`
+
+> `maxe_config [ options ]`
+
+> ` maxe_restart [ options ]`
+
+
+**maxe\_setup**
+
+> Runs all script tasks whose file name starts with "setup".
+
+> Intended  to  set up the local machine with basic packages and configuration in preparation for application installation and configuration.
+
+
+**maxe\_install**
+
+> Runs all script tasks whose file name starts with "install".
+
+> Intended to install (building if necessary) all required application packages on the local system and to create  default configuration files for them.
+
+
+**maxe\_config**
+
+> Runs all script tasks whose file name starts with "config".
+
+> Intended to apply all final configuration changes to the local system.
+
+
+**maxe\_restart**
+
+> Runs all script tasks whose file name starts with "restart".
+
+> Intended as a convenient way to restart services managed by maxe.
+
+
+
+## Options ##
+
+`--no-prompt`
+> Turns off prompting to continue between tasks.  Useful for unattended execution.
+
+`-hide-work`
+> Disables showing the work that will be performed before executing each task.  Normally, for task types EDIT and PROP, file differences are shown.  For task type RUN, the commands to be executed are shown.
+
+`--debug`
+> Prevents any changes from being applied to the system.   Useful  for debugging while developing scripts.
+
+`--synopsis`
+> Displays an hierarchical overview of all tasks that will be executed (in order) without executing them.  Does not process tasks, so --prompt, --hide-work and --debug will be ignored.  Can be combined with --all-phases  and  --all-provides.
+
+`--all-phases`
+> Overrides the current phase and processes tasks for all supported phases.  Useful when debugging or reviewing, or when you simply want to set a machine up from scratch as quickly as possible.  Can be  combined  with  --no-prompt, --hide-work, --debug and --all-provides.
+
+`--all-provides`
+> Ignores  the  needs of the machine and processes tasks regardless of what they provide.  Can be combined with --no-prompt, --hide-work, --debug and --all-phases.
+
+## Examples ##
+
+> `maxe_setup --synopsis`
+
+> `maxe_setup`
+
+> `maxe_install --synopsis`
+
+> `maxe_install`
+
+> `maxe_config --synopsis`
+
+> `maxe_config --debug`
+
+> `maxe_config`
+
+> `maxe_restart`
